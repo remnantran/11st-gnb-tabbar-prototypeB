@@ -1,0 +1,12 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="44" height="18.8571" viewBox="0 0 44 18.8571" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="logo/11st">
+<path id="Shape Copy" d="M5.12668 0L0 4.00848V6.25095L2.24822 6.2508L4.73966 4.31277V18.488L5.11062 18.8571H7.5275L7.89695 18.4876V0.369588L7.52614 0.000453482L5.12668 0ZM34.4869 0H24.0576L23.6876 0.370041L23.6874 2.78075L24.0581 3.14943H33.1792L39.4739 9.42865L33.1789 15.708H18.9513V0.369588L18.5804 0.000453482L16.1808 0L11.0543 4.00848V6.25095H13.3022L15.794 4.31277V18.488L16.159 18.8511L16.1648 18.8571H34.4869L43.939 9.42865L34.4869 0Z" fill-rule="evenodd" clip-rule="evenodd" fill="url(#paint0_linear_0_71)"/>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_71" x1="0" y1="0" x2="13.6682" y2="31.8483" gradientUnits="userSpaceOnUse">
+<stop stop-color="#FF5A2E"/>
+<stop offset="0.5196" stop-color="#FF0038"/>
+<stop offset="1" stop-color="#FF00EF"/>
+</linearGradient>
+</defs>
+</svg>

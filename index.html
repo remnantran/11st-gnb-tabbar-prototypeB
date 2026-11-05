@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>11번가 탭바 프로토타입 B</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  :root { --ease: cubic-bezier(.65,0,.35,1); }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { margin:0; height:100%; background:#1c1c1e; overflow:hidden;
+    font-family:"Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo", sans-serif; }
+  .stage { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; }
+  .phone { position:relative; width:375px; height:867px; background:#fff; overflow:hidden;
+    border-radius:36px; box-shadow:0 20px 60px rgba(0,0,0,.5); transform-origin:center center; }
+
+  .screen { position:absolute; inset:0; background:#fff; transition:transform .38s var(--ease); }
+  .screen.hidden { visibility:hidden; pointer-events:none; }
+  /* 화면 전환: PDP는 오른쪽에서 밀려 들어오고(push), 뒤로 가면 다시 오른쪽으로 빠짐(pop) */
+  .screen.push-in  { transform:translateX(100%); }
+  .screen.push-out { transform:translateX(-28%); }
+  .scroll { position:absolute; inset:0; overflow-y:auto; overflow-x:hidden; overscroll-behavior:contain; scrollbar-width:none; }
+  .scroll::-webkit-scrollbar { display:none; }
+  .content { position:relative; width:375px; background:#fff; }
+  .content img.sec { position:absolute; left:0; width:375px; display:block; user-select:none; -webkit-user-drag:none; }
+  .fix { position:absolute; left:0; width:375px; display:block; pointer-events:none; user-select:none; -webkit-user-drag:none; }
+
+  /* ---------- 타이틀배너 장식 (Figma 로고데이영역 42:11335, cropSize 27.5,102 320x54 안에서 잘림) ----------
+     산타·루돌프: 줄에 매달린 채 위아래로 통통 (줄 윗부분은 배너 위로 잘려 있어서 같이 움직여도 끊겨 보이지 않음)
+     반짝이: 별은 커졌다 작아지며 반짝, 동그란 빛망울은 은은하게 깜빡 */
+  .deco { position:absolute; left:27.5px; top:102px; width:320px; height:54px; overflow:hidden; pointer-events:none; }
+  .deco img, .deco .hang, .deco .bit, .deco svg { position:absolute; display:block; }
+  .hang { left:0; top:0; width:0; height:0; animation: hop 1.9s infinite; }
+  .hang.rudolph { animation-delay:.32s; }
+  @keyframes hop {
+    0%   { transform:translateY(0);      animation-timing-function:cubic-bezier(.2,.7,.4,1); }
+    11%  { transform:translateY(-3.5px); animation-timing-function:cubic-bezier(.6,0,.8,.5); }
+    22%  { transform:translateY(0);      animation-timing-function:cubic-bezier(.2,.7,.4,1); }
+    30%  { transform:translateY(-1.5px); animation-timing-function:cubic-bezier(.6,0,.8,.5); }
+    38%  { transform:translateY(0); }
+    100% { transform:translateY(0); }
+  }
+  .sparkle .star, .sparkle .glow { transform-box:fill-box; transform-origin:center; }
+  .sparkle .star { animation: twinkle 1.6s ease-in-out infinite; }
+  .sparkle .glow { animation: glimmer 2.4s ease-in-out infinite; }
+  @keyframes twinkle {
+    0%, 100% { transform:scale(.55) rotate(0deg); opacity:.45; }
+    45%      { transform:scale(1.15) rotate(12deg); opacity:1; }
+    60%      { transform:scale(1) rotate(10deg); opacity:1; }
+  }
+  @keyframes glimmer {
+    0%, 100% { opacity:.12; transform:scale(.85); }
+    50%      { opacity:.5; transform:scale(1.08); }
+  }
+  @media (prefers-reduced-motion: reduce) { .hang, .sparkle * { animation:none !important; } }
+  /* 화장품(자음생, Figma 55:51915): 5초마다 배너 아래에서 위로 띠옹~ 올라옴. 형태 변형 없이 위치만
+     한 주기 5s = 띠옹 등장(~1s) → 제자리 대기 → 끝에서 아래로 쏙 내려감(.36s) → 다시 띠옹 */
+  .deco .cosmetic { left:229.42px; top:-2.97px; width:51.47px; height:60.99px;
+    animation: rise-pop 5s linear .45s infinite both; }
+  @keyframes rise-pop {
+    0%    { transform:translateY(62px);  animation-timing-function:cubic-bezier(.2,.7,.3,1); }
+    7.6%  { transform:translateY(-5px);  animation-timing-function:cubic-bezier(.5,0,.6,1); }
+    10.6% { transform:translateY(1.8px); animation-timing-function:ease-out; }
+    13.3% { transform:translateY(-1.4px);  animation-timing-function:ease-in-out; }
+    16%   { transform:translateY(.4px);  animation-timing-function:ease-in-out; }
+    19%   { transform:translateY(0); }
+    92.8% { transform:translateY(0);     animation-timing-function:cubic-bezier(.5,0,.9,.6); }
+    100%  { transform:translateY(62px); }
+  }
+  @media (prefers-reduced-motion: reduce) { .deco .cosmetic { animation:none; } }
+
+  /* ---------- 상단 고정 레이어 ----------
+     상태바: 분홍 헤더 위에서는 분홍(흰 글자), 흰 탭 시트가 올라오면 흰색(검은 글자)으로 바뀜
+     카테고리 탭: 스크롤로 상태바 바로 아래(y44)에 닿으면 그 자리에 고정 (Figma 스크롤 후 홈 86:64817) */
+  .status { top:0; height:44px; z-index:30; }
+  .status.white { opacity:0; }
+  .tabs-sticky { top:44px; height:49px; z-index:20; visibility:hidden; }
+  .stuck .tabs-sticky { visibility:visible; }
+
+  /* ---------- floating_text 띠배너 (Figma 88:66423, 375x40, y93) ----------
+     탭이 고정되면 탭 뒤에서 아래로 스르륵 내려오고, 자리 잡은 뒤 문구가 왼쪽으로 계속 흐르고, 배경 그라데이션도 천천히 흐름 */
+  .ft { position:absolute; left:0; top:93px; width:375px; height:40px; z-index:15; overflow:hidden;
+    background: linear-gradient(90deg, #d0f2ff 0%, #f9ffb7 26.44%, #fbebff 50%, #f9ffb7 73.56%, #d0f2ff 100%) 0 0 / 750px 100% repeat-x;
+    box-shadow: 0 0 1px rgba(0,0,0,.28), 0 2px 6px rgba(0,0,0,.06);
+    animation: ft-bg 9s linear infinite;
+    transform: translateY(-40px); opacity:0; visibility:hidden; pointer-events:none;
+    /* 사라질 때: 잔상 없이 빠르게 (위로 살짝 + 페이드 .16s) */
+    transition: transform .16s cubic-bezier(.4,0,1,1), opacity .12s ease-in, visibility 0s linear .16s; }
+  .ft.on { transform:none; opacity:1; visibility:visible; pointer-events:auto;
+    transition: transform .5s cubic-bezier(.22,1,.36,1), opacity .2s ease, visibility 0s; }
+  @keyframes ft-bg { to { background-position: -750px 0; } }
+  /* 문구 영역: 문구 시작 x12 ~ 345.8 (Figma 마스크: 오른쪽 287~345.8에서 투명해짐).
+     흐를 때 왼쪽 끝도 x2~12에서 살짝 페이드 → 멈춰 있을 땐 첫 글자가 x12에 또렷하게 */
+  .ft-clip { position:absolute; left:2px; top:10px; width:343.8px; height:20px; overflow:hidden; padding-left:10px;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 10px, #000 285.25px, transparent 343.8px);
+            mask-image: linear-gradient(90deg, transparent 0, #000 10px, #000 285.25px, transparent 343.8px); }
+  .ft-track { display:flex; width:max-content; white-space:nowrap; will-change:transform; }
+  /* 배너가 먼저 내려와 자리 잡은 뒤(.6s) 문구가 왼쪽으로 흐르기 시작. 배너가 사라지면 처음 위치로 되돌아감 */
+  .ft.on .ft-track { animation: ft-flow var(--flow, 12s) linear .6s infinite; }
+  .ft-track span.copy { padding-right:28px; font-size:14px; line-height:20px; color:#111; letter-spacing:0; font-weight:400; }
+  .ft-track b { font-weight:600; }
+  .ft-track .red { color:#ff0038; }
+  @keyframes ft-flow { to { transform: translateX(-50%); } }
+  .ft-close { position:absolute; left:340px; top:7.5px; width:25px; height:25px; display:flex; align-items:center;
+    justify-content:center; cursor:pointer; border-radius:50%; }
+  .ft-close:active { background:rgba(0,0,0,.06); }
+  @media (prefers-reduced-motion: reduce) { .ft, .ft-track { animation:none; } }
+
+  /* ---------- 탭바 (흰색 solid) ---------- */
+  .tabs { position:absolute; left:0; bottom:0; width:375px; height:226px; z-index:40; pointer-events:none; }
+  .tab { position:absolute; inset:0; pointer-events:none; }
+  .tab img { display:block; user-select:none; -webkit-user-drag:none; }
+  /* Figma B안 탭바: fill #FFF solid, drop shadow 0 1 3 #000 10% (탭 pill radius 100, 맨 위로 버튼 44x44 radius 20) */
+  .bar { position:absolute; border-radius:100px; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.10); }
+  .bar.top-btn { border-radius:20px; }
+  .bar .items { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+  .bar .items img { height:auto; }
+
+  /* 탭바 전환: 화면이 바뀌면 이전 탭바는 페이드, 새 탭바는 젤리를 눌렀다 놓은 느낌으로 띠옹 (A안과 같은 모션) */
+  .tab > * { transition: opacity .3s var(--ease); }
+  .tab.off > * { opacity:0; }
+  .tab.off .hot { pointer-events:none; }
+  @keyframes jelly-pop-up {
+    0%   { opacity:0; transform: scale(1.04, .9);  }
+    18%  { opacity:1; transform: scale(1.04, .9);  animation-timing-function: cubic-bezier(.3,1.4,.5,1); }
+    62%  {            transform: scale(.99, 1.02); animation-timing-function: ease-out; }
+    100% {            transform: scale(1, 1); }
+  }
+  .tab.pop > * { animation: jelly-pop-up .5s backwards; animation-delay: calc(140ms + var(--i, 0) * 60ms); transform-origin:50% 100%; }
+  @media (prefers-reduced-motion: reduce) { .tab.pop > * { animation:none; } .screen { transition:none; } }
+
+  /* PDP 하단 구매 바 (Figma 55:51939): #FF0038 90%, radius 100, shadow 0 1 6 #000 10% */
+  .buy { position:absolute; display:flex; align-items:center; border-radius:100px; background:rgba(255,0,56,.9);
+    box-shadow:0 1px 6px rgba(0,0,0,.10); color:#fff; font-weight:700; white-space:nowrap; }
+  .buy .seg { height:56px; display:flex; align-items:center; justify-content:center; flex:none; }
+  .buy .seg img { width:22px; height:22px; display:block; }
+  .buy .s13 { font-size:13px; line-height:19px; }
+  .buy .s18 { font-size:18px; line-height:21px; }
+  .buy .div { width:1px; height:20px; background:rgba(255,255,255,.4); flex:none; }
+
+  /* PDP GNB 알약 바 (Figma 42:11813): 흰색 90%, radius 100, 아래 테두리 #eee, shadow 0 0 .5 28% + 0 2 3 6% */
+  .pdp-nav { position:absolute; inset:0 0 auto 0; height:110px; z-index:35; pointer-events:none; visibility:hidden; }
+  .pdp-nav.on { visibility:visible; }
+  .pdp-nav .hot { pointer-events:auto; }
+  .pdp-gnb { position:absolute; left:16px; top:44px; width:343px; height:58px; pointer-events:none;
+    display:flex; align-items:center; justify-content:space-between; padding:0 16px; border-radius:100px; }
+  /* 알약 바탕은 따로 두어 전환 중 투명도만 바꿈: 평소 흰색 90% */
+  .pdp-gnb .pill-bg { position:absolute; inset:0; border-radius:inherit; background:#fff; opacity:.9;
+    border-bottom:1px solid #eee; box-shadow:0 0 .5px rgba(0,0,0,.28), 0 2px 3px rgba(0,0,0,.06); }
+  .pdp-gnb > .grp { position:relative; }
+  .pdp-gnb .g-logo { transform-origin:0 0; }
+
+  /* 공유 이미지(히어로): 홈 썸네일 109x109 r4 ↔ PDP 대표 이미지 300x300 r12 */
+  .hero { position:absolute; z-index:30; overflow:hidden; display:none; pointer-events:none; background:#f8f8fa; }
+  .hero img { position:absolute; inset:0; width:100%; height:100%; display:block; }
+  .pdp-gnb .grp { display:flex; align-items:center; gap:10px; }
+  .pdp-gnb .grp.g8 { gap:8px; }
+  .pdp-gnb img { display:block; }
+  .pdp-gnb .vdiv { width:1px; height:20px; background:#ddd; }
+  .pdp-gnb .ttl { font-size:18px; line-height:21px; font-weight:700; color:#111; }
+  .pdp-gnb .cart { position:relative; width:36px; height:36px; }
+  .pdp-gnb .cart img { position:absolute; }
+  .pdp-gnb .badge { position:absolute; left:23px; top:-2px; width:16px; height:16px; border-radius:50%; background:#ff0038;
+    color:#fff; font-size:11px; line-height:16px; text-align:center; }
+
+  .hot { position:absolute; pointer-events:auto; cursor:pointer; border-radius:12px; }
+  .hot:active { background:rgba(0,0,0,.06); }
+  /* 탭바 아이콘 눌림: 아이콘만 감싸는 원 */
+  .tab .hot.slot:active { background:none; }
+  /* 탭 칸 눌림: 아이콘과 텍스트를 함께 감싸는 둥근 캡슐 (칸 68.6x56 안쪽 61x50, 다섯 칸 모두 같은 모양) */
+  .tab .hot.slot::before { content:""; position:absolute; left:50%; top:50%; width:61px; height:50px;
+    margin:-25px 0 0 -30.5px; border-radius:25px; background:rgba(0,0,0,.07);
+    opacity:0; transform:scale(.88); transition: opacity .18s ease, transform .22s var(--ease); }
+  .tab .hot.slot:active::before { opacity:1; transform:scale(1); transition-duration:.08s, .12s; }
+  body.debug .hot, body.debug .ft-close { outline:2px dashed rgba(255,0,56,.8); }
+
+  .hint { position:fixed; left:16px; bottom:16px; color:#8e8e93; font-size:12px; line-height:1.5; }
+  .hint kbd { background:#2c2c2e; color:#ddd; border-radius:4px; padding:1px 5px; font-family:inherit; }
+  @media (max-width:500px) { .phone { border-radius:0; box-shadow:none; } .hint { display:none; } }
+</style>
+</head>
+<body>
+<div class="stage"><div class="phone" id="phone">
+
+  <section class="screen" id="home">
+    <div class="scroll"><div class="content">
+      <!-- 분홍 헤더(BG + GNB + 타이틀배너) + 흰 시트의 카테고리 탭 (y0~205), 그 아래 CONTENTS -->
+      <img class="sec" src="img/b_head.png" style="top:0">
+      <div class="deco" aria-hidden="true">
+        <svg class="sparkle" style="left:-.48px;top:-5px" width="281" height="53" viewBox="0 0 281 53">
+          <circle class="glow" cx="89" cy="17" r="8" fill="#E4E4E4" opacity=".384" style="animation-delay:-.4s"/>
+          <circle class="glow" cx="63.5" cy="5.5" r="5.5" fill="#E4E4E4" opacity=".384" style="animation-delay:-1.5s"/>
+          <circle class="glow" cx="276.5" cy="22.5" r="4.5" fill="#E4E4E4" opacity=".384" style="animation-delay:-.9s"/>
+          <circle class="glow" cx="9.5" cy="37.5" r="7.5" fill="#E4E4E4" opacity=".384" style="animation-delay:-2s"/>
+          <path class="star" style="animation-delay:-.2s" fill-rule="evenodd" d="M5.27814 13L6.30607 16.3804C6.46134 16.8909 6.85808 17.2914 7.36606 17.4504L10.6202 18.4689L7.37813 19.5255C6.87206 19.6904 6.47998 20.0955 6.33071 20.6078L5.34215 24L4.31417 20.6196C4.15895 20.1091 3.76216 19.7086 3.25423 19.5496L0 18.5311L3.24215 17.4745C3.74822 17.3096 4.14031 16.9045 4.28958 16.3922L5.27814 13Z" fill="#FFE000"/>
+          <path class="star" style="animation-delay:-1s;animation-duration:1.9s" fill-rule="evenodd" d="M84.2781 7L85.3061 10.3704C85.4613 10.8793 85.8581 11.2787 86.3661 11.4372L89.6202 12.4527L86.3781 13.5061C85.8721 13.6705 85.48 14.0745 85.3307 14.5852L84.3421 17.9673L83.3142 14.5969C83.159 14.088 82.7622 13.6886 82.2542 13.5301L79 12.5146L82.2422 11.4613C82.7482 11.2968 83.1403 10.8929 83.2896 10.3822L84.2781 7Z" fill="#FFE000"/>
+          <path class="star" style="animation-delay:-.6s;animation-duration:1.4s" fill-rule="evenodd" d="M263.331 13L264.175 15.7658C264.302 16.1835 264.628 16.5112 265.045 16.6412L267.715 17.4746L265.055 18.339C264.639 18.4739 264.318 18.8054 264.195 19.2246L263.384 22L262.54 19.2342C262.413 18.8165 262.087 18.4888 261.67 18.3588L259 17.5254L261.661 16.661C262.076 16.5261 262.398 16.1946 262.52 15.7755L263.331 13Z" fill="#FFE94D"/>
+          <path class="star" style="animation-delay:-1.3s;animation-duration:1.7s" fill-rule="evenodd" d="M80.3313 44L81.1749 46.7658C81.3023 47.1835 81.6279 47.5112 82.0447 47.6412L84.7152 48.4746L82.0546 49.339C81.6394 49.4739 81.3176 49.8054 81.1951 50.2246L80.3839 53L79.5403 50.2342C79.4129 49.8165 79.0873 49.4888 78.6705 49.3588L76 48.5254L78.6606 47.661C79.0759 47.5261 79.3976 47.1946 79.5201 46.7755L80.3313 44Z" fill="#FFE94D"/>
+        </svg>
+        <div class="hang santa">
+          <img src="img/deco/santa_body.svg" style="left:8.95px;top:8.01px;width:34.55px;height:40.37px" alt="">
+          <img src="img/deco/santa_string.svg" style="left:24.01px;top:-24px;width:5px;height:32px" alt="">
+        </div>
+        <div class="hang rudolph">
+          <img src="img/deco/rudolph_face.svg" style="left:50.49px;top:13.25px;width:22.38px;height:25.81px" alt="">
+          <div class="bit" style="left:61.52px;top:-22px;width:1px;height:40px;background:#f0f0f0"></div>
+          <div class="bit" style="left:59.52px;top:18px;width:5px;height:3px;background:#ddd;border-radius:1.5px 1.5px .5px .5px"></div>
+        </div>
+        <!-- 화장품 위에 설화수 버튼 (Figma 순서 그대로) -->
+        <img class="cosmetic" src="img/deco/cosmetic.png" alt="">
+        <img src="img/deco/btn_sulwhasoo.png" style="left:251px;top:29px;width:51.5px;height:21.5px" alt="">
+      </div>
+      <img class="sec" src="img/home_contents.png" style="top:205px">
+      <!-- 최근 본 상품과 비슷한 상품이에요 > 두 번째 상품(비비고 왕교자) → B안 PDP -->
+      <a class="hot" data-push="pdp" style="left:133px;top:1214px;width:109px;height:183px;border-radius:6px" title="비비고 왕교자"></a>
+    </div></div>
+    <img class="fix status pink" src="img/status_pink.png" alt="">
+    <img class="fix status white" id="statusWhite" src="img/status_white.png" alt="">
+    <img class="fix tabs-sticky" src="img/tabs_sticky.png" alt="">
+
+    <div class="ft" id="ft" role="marquee" aria-label="E쿠폰 메가데이 외식·카페·디지털 콘텐츠 최대 1,3000원 할인!">
+      <div class="ft-clip"><div class="ft-track" id="ftTrack">
+        <span class="copy"><b class="red">🎉 E쿠폰</b> <b>메가데이</b> 외식·카페·디지털 콘텐츠 최대 1,3000원 할인!</span>
+        <span class="copy" aria-hidden="true"><b class="red">🎉 E쿠폰</b> <b>메가데이</b> 외식·카페·디지털 콘텐츠 최대 1,3000원 할인!</span>
+      </div></div>
+      <div class="ft-close" id="ftClose" title="닫기"><svg width="13" height="13" viewBox="0 0 13 13" aria-hidden="true">
+        <path d="M1.5 1.5 11.5 11.5M11.5 1.5 1.5 11.5" stroke="#111" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+    </div>
+  </section>
+
+  <!-- B안 PDP (Figma 42:11634): 콘텐츠는 A안 PDP와 같은 그림, y110부터 -->
+  <section class="screen hidden" id="pdp">
+    <div class="scroll"><div class="content">
+      <img class="sec" src="img/pdp_contents.png" style="top:110px">
+    </div></div>
+  </section>
+
+  <!-- PDP GNB 레이어: 화면 밖(phone) 레이어라서 PDP가 펼쳐지는 동안 잘리지 않고 홈 GNB와 이어지는 모션을 냄 -->
+  <div class="pdp-nav" id="pdpNav">
+    <img class="fix pdp-status" src="img/status_clear.png" style="top:0;height:44px" alt="">
+    <div class="pdp-gnb" id="pdpGnb">
+      <i class="pill-bg"></i>
+      <div class="grp">
+        <img class="g-back" src="img/deco/gnb_back.svg" style="width:36px;height:36px" alt="">
+        <div class="grp g8"><img class="g-logo" src="img/deco/logo_11st.svg" style="width:44px;height:18.857px" alt=""><span class="g-title grp g8"><i class="vdiv"></i><span class="ttl">비비고</span></span></div>
+      </div>
+      <div class="grp">
+        <img class="g-search" src="img/deco/gnb_search.svg" style="width:36px;height:36px" alt="">
+        <div class="cart g-cart"><img src="img/deco/gnb_cart.svg" style="left:4.4px;top:6px;width:25.183px;height:23.5px" alt=""><span class="badge">3</span></div>
+      </div>
+    </div>
+    <a class="hot" data-back style="left:28px;top:51px;width:44px;height:44px;border-radius:22px" title="뒤로"></a>
+  </div>
+
+  <!-- 썸네일 → PDP 대표 이미지로 커지는 전환용 이미지 -->
+  <div class="hero" id="hero"><img class="h-big" src="img/deco/hero_pdp.png" alt=""><img class="h-thumb" src="img/deco/hero_thumb.png" alt=""></div>
+
+  <!-- 고정 탭바 -->
+  <div class="tabs">
+    <div class="tab" data-screen="home">
+      <div class="bar top-btn" style="left:315px;top:91px;width:44px;height:44px"><div class="items"><img src="img/tab/top.png" style="width:36px"></div></div>
+      <div class="bar" style="left:16px;top:150px;width:343px;height:56px"><div class="items">
+        <img src="img/tab/home_1.png" style="width:69px"><img src="img/tab/home_2.png" style="width:69px"><img src="img/tab/home_3.png" style="width:69px"><img src="img/tab/home_4.png" style="width:69px"><img src="img/tab/home_5.png" style="width:69px">
+      </div></div>
+      <a class="hot" data-top style="left:315px;top:91px;width:44px;height:44px;border-radius:20px" title="맨 위로"></a>
+      <a class="hot slot" style="left:16.0px;top:150px;width:68.6px;height:56px" title="카테고리"></a>
+      <a class="hot slot" style="left:84.6px;top:150px;width:68.6px;height:56px" title="검색"></a>
+      <a class="hot slot" data-top style="left:153.2px;top:150px;width:68.6px;height:56px" title="홈"></a>
+      <a class="hot slot" style="left:221.8px;top:150px;width:68.6px;height:56px" title="나의11번가"></a>
+      <a class="hot slot" style="left:290.4px;top:150px;width:68.6px;height:56px" title="최근본"></a>
+    </div>
+    <div class="tab off" data-screen="pdp">
+      <div class="bar top-btn" style="left:315px;top:91px;width:44px;height:44px"><div class="items"><img src="img/tab/top.png" style="width:36px"></div></div>
+      <div class="buy" style="left:16px;top:150px;width:343px;height:56px">
+        <div class="seg" style="width:100px"><img src="img/deco/ic_giftbox.svg" alt=""><span class="s13">선물하기</span></div>
+        <i class="div"></i>
+        <div class="seg" style="width:120px"><img src="img/deco/ic_cart.svg" alt=""><span class="s18">장바구니</span></div>
+        <i class="div"></i>
+        <div class="seg" style="width:120px"><span class="s18">바로 구매</span><img src="img/deco/ic_chevron_right.svg" alt=""></div>
+      </div>
+      <a class="hot" data-top style="left:315px;top:91px;width:44px;height:44px;border-radius:20px" title="맨 위로"></a>
+    </div>
+  </div>
+
+</div></div>
+<div class="hint"><kbd>H</kbd> 핫스팟 보기 · <kbd>←</kbd> 뒤로</div>
+
+<script>
+(() => {
+  const TAB_SPACE = 110;
+  const phone = document.getElementById('phone');
+  const scroll = document.querySelector('#home .scroll');
+  const byId = id => document.getElementById(id);
+  const scrollOf = id => byId(id).querySelector('.scroll');
+
+  /* ---------- 스크롤 영역 높이 ---------- */
+  function layout(sc) {
+    const c = sc.querySelector('.content');
+    let bottom = 0;
+    c.querySelectorAll('img.sec').forEach(img => {
+      if (img.naturalHeight) bottom = Math.max(bottom, img.offsetTop + img.naturalHeight / 2);
+    });
+    c.style.height = (Math.max(bottom, 867) + TAB_SPACE) + 'px';
+  }
+  document.querySelectorAll('.scroll').forEach(sc => {
+    sc.querySelectorAll('img.sec').forEach(img => img.complete ? layout(sc) : img.addEventListener('load', () => layout(sc)));
+    layout(sc);
+  });
+
+  function fit() {
+    const s = innerWidth <= 500 ? Math.min(innerWidth/375, innerHeight/867)
+                                : Math.min(1, (innerHeight - 32) / 867, (innerWidth - 16) / 375);
+    phone.style.transform = `scale(${s})`;
+  }
+  addEventListener('resize', fit); fit();
+
+  /* ---------- 스크롤: 탭 고정 + 띠배너 ----------
+     카테고리 탭(콘텐츠 y156)이 상태바 아래(y44)에 닿는 지점 = 112px 스크롤 */
+  const STICK = 112;
+  const statusWhite = document.getElementById('statusWhite');
+  const ft = document.getElementById('ft');
+  let ftClosed = false;
+  function onScroll() {
+    const top = Math.max(scroll.scrollTop, 0);
+    // 흰 시트 윗부분(y≈150)이 상태바에 다가오면 상태바가 흰색으로
+    statusWhite.style.opacity = Math.min(Math.max((top - 98) / 10, 0), 1);
+    const stuck = top >= STICK;
+    phone.classList.toggle('stuck', stuck);
+    if (!stuck) ftClosed = false;                 // 헤더가 다시 보이면 닫았던 배너도 다음에 다시 나옴
+    ft.classList.toggle('on', stuck && !ftClosed);
+  }
+  scroll.addEventListener('scroll', onScroll, { passive:true });
+  onScroll();
+  document.getElementById('ftClose').addEventListener('click', () => { ftClosed = true; ft.classList.remove('on'); });
+
+  // 문구 흐르는 속도: 초당 약 36px
+  const track = document.getElementById('ftTrack');
+  const setFlow = () => track.style.setProperty('--flow', (track.scrollWidth / 2 / 36).toFixed(2) + 's');
+  (document.fonts ? document.fonts.ready : Promise.resolve()).then(setFlow); setFlow();
+
+  /* ---------- 화면 전환: 홈 ↔ PDP ---------- */
+  let current = 'home';
+  const stack = [];
+  function setTab(screen) {
+    document.querySelectorAll('.tab').forEach(t => {
+      const on = t.dataset.screen === screen;
+      t.classList.remove('pop');
+      if (on) {
+        [...t.children].forEach((c, i) => c.style.setProperty('--i', c.classList.contains('hot') ? 0 : i));
+        t.getBoundingClientRect();
+        t.classList.add('pop');
+      }
+      t.classList.toggle('off', !on);
+    });
+  }
+  /* ---------- 홈 ↔ PDP: 공유 이미지 전환 ----------
+     열기: 비비고 썸네일(109x109)이 PDP 대표 이미지(300x300) 자리로 커지고, PDP 화면은 썸네일 자리에서부터 펼쳐짐
+     닫기: 반대로 대표 이미지가 썸네일 자리로 작아지며 PDP가 그 안으로 접혀 들어감 */
+  const EASE = 'cubic-bezier(.32,.72,0,1)', DUR = 560;
+  const hero = byId('hero'), heroThumb = hero.querySelector('.h-thumb');
+  const pdpNav = byId('pdpNav'), pill = byId('pdpGnb'), pillBg = pill.querySelector('.pill-bg');
+  const g = sel => pill.querySelector(sel);
+  const CARD = { x:133, y:1214, w:109, h:109, r:4 };   // 홈 콘텐츠 좌표
+  const MAIN = { x:16,  y:118,  w:300, h:300, r:12 };  // PDP 콘텐츠 좌표(스크롤 0 기준)
+  const FULL = { x:0, y:0, w:375, h:867 };
+  let busy = false;
+  const cardRect = () => ({ ...CARD, y: CARD.y - scrollOf('home').scrollTop });
+  const mainRect = () => ({ ...MAIN, y: MAIN.y - scrollOf('pdp').scrollTop });
+  const inset = (r, R) => `inset(${r.y}px ${375 - r.x - r.w}px ${867 - r.y - r.h}px ${r.x}px round ${R}px)`;
+  const box = r => ({ left:r.x + 'px', top:r.y + 'px', width:r.w + 'px', height:r.h + 'px', borderRadius:r.r + 'px' });
+  const clearAnims = el => el.getAnimations({ subtree:true }).forEach(a => a.cancel());
+
+  function heroMove(from, to, grow) {
+    clearAnims(hero);
+    hero.style.display = 'block';
+    const a = hero.animate([box(from), box(to)], { duration:DUR, easing:EASE, fill:'forwards' });
+    // 작은 썸네일 그림 ↔ 큰 대표 이미지 그림을 이동 중에 교차
+    heroThumb.animate([{ opacity: grow ? 1 : 0 }, { opacity: grow ? 0 : 1 }],
+      { duration: DUR * .55, delay: grow ? 40 : DUR * .4, easing:'ease', fill:'both' });
+    return a.finished.then(() => { hero.style.display = 'none'; clearAnims(hero); });
+  }
+
+  /* GNB 연결 모션 (홈 상단 상태에 따라)
+     - 'pill'  : 홈 GNB 알약(검색바)이 보이는 상태 → 같은 알약이 PDP GNB로 변신 (장바구니 그대로, 로고는 작아지며 비켜섬)
+     - 'sticky': 카테고리 탭(+띠배너)이 상단에 고정된 상태 → 그 흰 영역이 그대로 오므라들며 PDP 알약 바가 됨
+     - 'drop'  : 그 밖 → PDP GNB가 위에서 톡 내려옴 */
+  const HOME_LOGO = 'translate(-46px,-2.57px) scale(1.2727)';   // 홈 로고 56x24 @(16,17) ↔ PDP 로고 44x18.9 @(62,19.6)
+  const ITEMS = ['.g-back', '.g-logo', '.g-title', '.g-search', '.g-cart'];
+  function homeTopState() {
+    const hs = scrollOf('home').scrollTop;
+    if (hs < 50) return { mode:'pill', y:44 - hs };
+    if (hs >= STICK) return { mode:'sticky', h: ft.classList.contains('on') ? 89 : 49 };   // 탭 49 + 띠배너 40
+    return { mode:'drop' };
+  }
+  // 고정 탭 영역(0,44 375xh, 각진 사각형) ↔ PDP 알약(16,44 343x58, 둥근)
+  const stickyBg = h => ({ top:'0px', left:'-16px', right:'-16px', bottom:(58 - h) + 'px', borderRadius:'0px' });
+  const pillBox  = { top:'0px', left:'0px', right:'0px', bottom:'0px', borderRadius:'100px' };
+  function gnbIn(st) {
+    clearAnims(pdpNav);
+    pdpNav.classList.add('on');
+    const o = { duration:DUR, easing:EASE, fill:'both' };
+    pdpNav.querySelector('.pdp-status').animate([{ opacity:0 }, { opacity:1 }], { duration:DUR * .6, fill:'both' });
+    if (st.mode === 'pill') {
+      pill.animate([{ transform:`translateY(${st.y - 44}px)` }, { transform:'none' }], o);
+      pillBg.animate([{ opacity:0, easing:'ease-out' }, { opacity:1, offset:.22, easing:EASE }, { opacity:.9 }], { ...o, easing:'linear' });
+      g('.g-logo').animate([{ transform:HOME_LOGO }, { transform:'none' }], o);
+      g('.g-back').animate([{ opacity:0, transform:'translateX(-14px)' }, { opacity:1, transform:'none' }], { ...o, delay:90 });
+      g('.g-title').animate([{ opacity:0, transform:'translateX(12px)' }, { opacity:1, transform:'none' }], { ...o, delay:130 });
+      g('.g-search').animate([{ opacity:0, transform:'scale(.6)' }, { opacity:1, transform:'none' }], { ...o, delay:150 });
+    } else if (st.mode === 'sticky') {
+      // 흰 탭 영역이 먼저 덮이고(탭·띠배너 글자가 흰색 아래로 사라짐) → 알약 모양으로 오므라듦 → 그 안에 GNB 요소가 차례로 들어옴
+      // 단계별 타이밍: 0~20% 흰색으로 덮기(ease-out) → 20~100% 알약으로 오므라들기(EASE)
+      pillBg.animate([{ ...stickyBg(st.h), opacity:0, boxShadow:'none', easing:'ease-out' },
+        { ...stickyBg(st.h), opacity:1, offset:.2, boxShadow:'none', easing:EASE },
+        { ...pillBox, opacity:.9 }], { duration:DUR * 1.1, fill:'both', easing:'linear' });
+      ITEMS.forEach((sel, i) => g(sel).animate([{ opacity:0, transform:'translateY(6px)' }, { opacity:1, transform:'none' }],
+        { duration:DUR * .8, delay:DUR * .38 + i * 40, easing:EASE, fill:'both' }));
+    } else {
+      pill.animate([{ transform:'translateY(-96px)' }, { transform:'translateY(5px)', offset:.55 },
+        { transform:'translateY(-2px)', offset:.78 }, { transform:'none' }],
+        { duration:640, delay:80, easing:'cubic-bezier(.2,.7,.3,1)', fill:'both' });
+    }
+  }
+  function gnbOut(st) {
+    clearAnims(pdpNav);
+    const o = { duration:DUR, easing:EASE, fill:'forwards' };
+    const out = { duration:DUR * .4, easing:'ease-in', fill:'forwards' };
+    pdpNav.querySelector('.pdp-status').animate([{ opacity:1 }, { opacity:0 }], { duration:DUR * .6, fill:'forwards' });
+    let done;
+    if (st.mode === 'pill') {
+      done = pill.animate([{ transform:'none' }, { transform:`translateY(${st.y - 44}px)` }], o).finished;
+      pillBg.animate([{ opacity:.9 }, { opacity:1, offset:.6 }, { opacity:1, offset:.8 }, { opacity:0 }], { ...o, easing:'linear' });
+      g('.g-logo').animate([{ transform:'none' }, { transform:HOME_LOGO }], o);
+      g('.g-cart').animate([{ opacity:1 }, { opacity:1, offset:.8 }, { opacity:0 }], { ...o, easing:'linear' });
+      g('.g-back').animate([{ opacity:1 }, { opacity:0, transform:'translateX(-14px)' }], out);
+      g('.g-title').animate([{ opacity:1 }, { opacity:0, transform:'translateX(12px)' }], out);
+      g('.g-search').animate([{ opacity:1 }, { opacity:0, transform:'scale(.6)' }], out);
+    } else if (st.mode === 'sticky') {
+      // 반대로: 요소가 먼저 빠지고 → 알약이 탭 영역 크기로 넓어진 뒤 → 흰색이 걷히며 홈의 고정 탭·띠배너가 드러남
+      ITEMS.forEach(sel => g(sel).animate([{ opacity:1 }, { opacity:0, transform:'translateY(6px)' }], out));
+      done = pillBg.animate([{ ...pillBox, opacity:.9, easing:EASE }, { ...stickyBg(st.h), opacity:1, offset:.72, boxShadow:'none', easing:'ease-in' },
+        { ...stickyBg(st.h), opacity:0, boxShadow:'none' }], { duration:DUR * 1.1, fill:'forwards', easing:'linear' }).finished;
+    } else {
+      done = pill.animate([{ transform:'none', opacity:1 }, { transform:'translateY(-96px)', opacity:0 }],
+        { duration:380, easing:'cubic-bezier(.5,0,.75,0)', fill:'forwards' }).finished;
+    }
+    done.then(() => { pdpNav.classList.remove('on'); clearAnims(pdpNav); });
+  }
+
+  // PDP 화면 전체를 "대표 이미지가 썸네일 자리에 오도록" 줄여 둔 상태 ↔ 원래 크기 (이미지와 페이지가 함께 커짐)
+  const shrunk = (img, card) => {
+    const k = card.w / img.w;
+    return `translate(${card.x - img.x * k}px, ${card.y - img.y * k}px) scale(${k})`;
+  };
+  function openPdp() {
+    if (busy || current === 'pdp') return; busy = true;
+    const home = byId('home'), pdp = byId('pdp');
+    const st = homeTopState(), from = cardRect();
+    scrollOf('pdp').scrollTop = 0;
+    const to = mainRect();
+    pdp.style.zIndex = 2; home.style.zIndex = 1; pdp.classList.remove('hidden');
+    pdp.style.transformOrigin = '0 0';
+    const k = from.w / to.w;
+    pdp.animate([
+      { transform:shrunk(to, from), clipPath:inset(to, from.r / k) },
+      { transform:'none', clipPath:inset(FULL, 0) }
+    ], { duration:DUR, easing:EASE });
+    heroMove(from, to, true).then(() => { home.classList.add('hidden'); busy = false; });
+    gnbIn(st);
+    current = 'pdp'; stack.push('home'); setTab('pdp');
+  }
+  function closePdp() {
+    if (busy || current !== 'pdp') return; busy = true;
+    const home = byId('home'), pdp = byId('pdp');
+    home.classList.remove('hidden'); home.style.zIndex = 1; pdp.style.zIndex = 2;
+    const st = homeTopState(), to = cardRect(), from = mainRect();
+    pdp.style.transformOrigin = '0 0';
+    const k = to.w / from.w;
+    const anim = pdp.animate([
+      { transform:'none', clipPath:inset(FULL, 0) },
+      { transform:shrunk(from, to), clipPath:inset(from, to.r / k) }
+    ], { duration:DUR, easing:EASE, fill:'forwards' });
+    heroMove(from, to, false).then(() => { pdp.classList.add('hidden'); anim.cancel(); busy = false; });
+    gnbOut(st);
+    current = 'home'; stack.length = 0; setTab('home');
+  }
+  function back() { closePdp(); }
+
+  document.addEventListener('click', e => {
+    const h = e.target.closest('.hot'); if (!h) return;
+    e.preventDefault();
+    if (h.dataset.push === 'pdp') openPdp();
+    else if ('back' in h.dataset) back();
+    else if ('top' in h.dataset) scrollOf(current).scrollTo({ top:0, behavior:'smooth' });
+  });
+  addEventListener('keydown', e => {
+    if (e.key === 'h' || e.key === 'H') document.body.classList.toggle('debug');
+    if (e.key === 'ArrowLeft' || e.key === 'Escape') back();
+  });
+
+  // 마우스 드래그 스크롤 (데스크톱 시연용)
+  document.querySelectorAll('.scroll').forEach(el => {
+    let y0 = null, s0 = 0, moved = false;
+    el.addEventListener('mousedown', e => { y0 = e.clientY; s0 = el.scrollTop; moved = false; });
+    addEventListener('mousemove', e => { if (y0 === null) return; const d = e.clientY - y0; if (Math.abs(d) > 4) moved = true; el.scrollTop = s0 - d / (phone.getBoundingClientRect().height / 867); });
+    addEventListener('mouseup', () => { y0 = null; });
+    el.addEventListener('click', e => { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
+  });
+})();
+</script>
+</body>
+</html>
