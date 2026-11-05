@@ -6,7 +6,7 @@
   html,body { margin:0; height:100%; background:#1c1c1e; overflow:hidden;
     font-family:"Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo", sans-serif; }
   .stage { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; }
-  .phone { position:relative; width:375px; height:867px; background:#fff; overflow:hidden;
+  .phone { position:relative; width:375px; height:812px; background:#fff; overflow:hidden;
     border-radius:36px; box-shadow:0 20px 60px rgba(0,0,0,.5); transform-origin:center center; }
 
   .screen { position:absolute; inset:0; background:#fff; transition:transform .38s var(--ease); }
@@ -293,7 +293,7 @@
     c.querySelectorAll('img.sec').forEach(img => {
       if (img.naturalHeight) bottom = Math.max(bottom, img.offsetTop + img.naturalHeight / 2);
     });
-    c.style.height = (Math.max(bottom, 867) + TAB_SPACE) + 'px';
+    c.style.height = (Math.max(bottom, 812) + TAB_SPACE) + 'px';
   }
   document.querySelectorAll('.scroll').forEach(sc => {
     sc.querySelectorAll('img.sec').forEach(img => img.complete ? layout(sc) : img.addEventListener('load', () => layout(sc)));
@@ -301,8 +301,8 @@
   });
 
   function fit() {
-    const s = innerWidth <= 500 ? Math.min(innerWidth/375, innerHeight/867)
-                                : Math.min(1, (innerHeight - 32) / 867, (innerWidth - 16) / 375);
+    const s = innerWidth <= 500 ? Math.min(innerWidth/375, innerHeight/812)
+                                : Math.min(1, (innerHeight - 32) / 812, (innerWidth - 16) / 375);
     phone.style.transform = `scale(${s})`;
   }
   addEventListener('resize', fit); fit();
@@ -355,11 +355,11 @@
   const g = sel => pill.querySelector(sel);
   const CARD = { x:133, y:1214, w:109, h:109, r:4 };   // 홈 콘텐츠 좌표
   const MAIN = { x:16,  y:118,  w:300, h:300, r:12 };  // PDP 콘텐츠 좌표(스크롤 0 기준)
-  const FULL = { x:0, y:0, w:375, h:867 };
+  const FULL = { x:0, y:0, w:375, h:812 };
   let busy = false;
   const cardRect = () => ({ ...CARD, y: CARD.y - scrollOf('home').scrollTop });
   const mainRect = () => ({ ...MAIN, y: MAIN.y - scrollOf('pdp').scrollTop });
-  const inset = (r, R) => `inset(${r.y}px ${375 - r.x - r.w}px ${867 - r.y - r.h}px ${r.x}px round ${R}px)`;
+  const inset = (r, R) => `inset(${r.y}px ${375 - r.x - r.w}px ${812 - r.y - r.h}px ${r.x}px round ${R}px)`;
   const box = r => ({ left:r.x + 'px', top:r.y + 'px', width:r.w + 'px', height:r.h + 'px', borderRadius:r.r + 'px' });
   const clearAnims = el => el.getAnimations({ subtree:true }).forEach(a => a.cancel());
 
@@ -495,7 +495,7 @@
   document.querySelectorAll('.scroll').forEach(el => {
     let y0 = null, s0 = 0, moved = false;
     el.addEventListener('mousedown', e => { y0 = e.clientY; s0 = el.scrollTop; moved = false; });
-    addEventListener('mousemove', e => { if (y0 === null) return; const d = e.clientY - y0; if (Math.abs(d) > 4) moved = true; el.scrollTop = s0 - d / (phone.getBoundingClientRect().height / 867); });
+    addEventListener('mousemove', e => { if (y0 === null) return; const d = e.clientY - y0; if (Math.abs(d) > 4) moved = true; el.scrollTop = s0 - d / (phone.getBoundingClientRect().height / 812); });
     addEventListener('mouseup', () => { y0 = null; });
     el.addEventListener('click', e => { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
   });
