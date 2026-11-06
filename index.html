@@ -187,21 +187,16 @@
   .my-nav .hot { pointer-events:auto; }
   body.debug .hot, body.debug .ft-close { outline:2px dashed rgba(255,0,56,.8); }
 
-  /* ---------- AI검색 버튼 (Figma 111:94588) ---------- */
-  .aib { position:absolute; left:151px; top:141px; width:72px; height:72px; pointer-events:none; }
-  .aib-sh { position:absolute; left:12px; top:12.9px; width:48px; height:47.1px; border-radius:24px;
-    background:#bbb; opacity:.8; filter:blur(8.15px); }
-  .aib-ic { position:absolute; left:10px; top:8px; width:52px; height:52px; border-radius:50%; }
-  .aib-ar { position:absolute; left:31px; top:12px; overflow:visible; }
-  /* 위로 올라오라는 힌트: 두 화살표가 번갈아 밝아짐 */
-  .aib-ar .a1 { animation: ar-a 1.6s ease-in-out infinite; }
-  .aib-ar .a2 { animation: ar-b 1.6s ease-in-out infinite; }
-  @keyframes ar-a { 0%,100% { opacity:.3; } 50% { opacity:1; } }
-  @keyframes ar-b { 0%,100% { opacity:1; } 50% { opacity:.3; } }
-  .aib.press .aib-ic, .aib.press .aib-ar { transform:scale(.92); transition:transform .12s ease-out; }
-  .aib .aib-ic, .aib .aib-ar { transform-origin:26px 26px; transition:transform .3s cubic-bezier(.3,1.6,.5,1); }
-  .aib .aib-ar { transform-origin:5px 22px; }
-  .aib.gone { visibility:hidden; }
+  /* ---------- 탭바 알약 (Figma B안 홈 탭바 130:102164 · 나의11번가 134:103166) ----------
+     왼쪽 = 그라데이션 알약 버튼(AI 맞춤검색 / 11번가+ 구매미션), 오른쪽 = 흰 알약, 맨 위로 = 원.
+     Figma glass + drop shadow 0 1 6 #000 10% → 흰 바탕 + 그림자로 표현 */
+  .bar.solid { background:#fff; box-shadow:0 1px 6px rgba(0,0,0,.10); }
+  .bar.top-btn.round { border-radius:50%; }
+  .pill { position:absolute; height:52px; border-radius:26px; box-shadow:0 1px 6px rgba(0,0,0,.10); pointer-events:none; }
+  .pill img { display:block; width:100%; height:100%; border-radius:26px; }
+  .pill.press { transform:scale(.95); transition:transform .12s ease-out; }
+  .pill { transition:transform .3s cubic-bezier(.3,1.6,.5,1); }
+  .aib.gone, .pill.gone { visibility:hidden; }
   .tab .hot.ai-hot:active { background:none; }
 
   /* ---------- AI검색 바텀시트 ---------- */
@@ -211,14 +206,14 @@
   .ai-catch { position:absolute; inset:0; }
   .ai-move { position:absolute; inset:0; pointer-events:none; }
   .ai-move > * { pointer-events:auto; }
-  /* 시트 몸통 = 늘어나는 보라 원. 최종: 0,533.5 375x278.5, 위 모서리 12 (드래그 핸들 그림자 0 0 8 2 15%) */
+  /* 시트 몸통 = 알약이 그대로 늘어나 시트가 됨. 최종: 0,533.5 375x278.5, 위 모서리 12 (드래그 핸들 그림자 0 0 8 2 15%) */
   .ai-blob { position:absolute; left:0; top:533.5px; width:375px; height:278.5px; overflow:hidden;
     border-radius:12px 12px 0 0; background:#faf7ff; box-shadow:0 0 8px 2px rgba(0,0,0,.15); }
   .ai-bg { position:absolute; left:0; top:0; width:375px; height:278.5px; display:block; }
-  /* 보라 잉크: 버튼 중심(시트 기준 187,227.5)에서 퍼지는 원형 그라데이션 */
+  /* 잉크: AI 맞춤검색 알약의 연보라→하늘 그라데이션(#F6E0FF→#E2F3FF)이 알약 자리(시트 기준 17,210.5 117x52)에서 번져 나감 */
   .ai-ink { position:absolute; inset:0; opacity:0;
-    background:radial-gradient(circle at 187px 227.5px, #464bf6 0px, #7a3cfa 90px, #c027ff 200px, #d68bff 300px); }
-  .ai-icon { position:absolute; left:161px; top:201.5px; width:52px; height:52px; opacity:0; }
+    background:radial-gradient(120% 140% at 75.5px 236.5px, #ead2ff 0px, #f1e2ff 140px, #e2f3ff 360px); }
+  .ai-icon { position:absolute; left:17px; top:210.5px; width:117px; height:52px; border-radius:26px; opacity:0; transform-origin:50% 50%; }
   .ai-sheet { position:absolute; left:0; top:533.5px; width:375px; height:278.5px; pointer-events:none; }
   .ai-sheet > * { pointer-events:auto; }
   .ai-c { position:absolute; display:block; height:auto; user-select:none; -webkit-user-drag:none; opacity:0; }
@@ -328,44 +323,28 @@
   <!-- 고정 탭바 -->
   <div class="tabs">
     <div class="tab" data-screen="home">
-      <div class="bar top-btn" style="left:315px;top:105px;width:44px;height:44px"><div class="items"><img src="img/tab/top.png" style="width:36px"></div></div>
-      <!-- Figma 111:94569: 카테고리 · 검색 · (가운데 AI검색 버튼) · 나의11번가 · 최근본 -->
-      <div class="bar" style="left:16px;top:158.5px;width:343px;height:52px"><img src="img/ai/bar.png" style="width:343px;height:52px" alt=""></div>
-      <!-- AI검색 버튼 (Figma 111:94588): 그림자 + 보라 그라데이션 원 52px + 위쪽 화살표 두 개 -->
-      <div class="aib" id="aiBtn">
-        <i class="aib-sh"></i>
-        <img class="aib-ic" src="img/ai/ai_btn.png" alt="">
-        <svg class="aib-ar" width="10" height="8" viewBox="0 0 10 8" aria-hidden="true">
-          <path class="a1" d="M.75 3.1 5 .75l4.25 2.35" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <path class="a2" d="M.75 7.1 5 4.75l4.25 2.35" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".3"/>
-        </svg>
-      </div>
-      <a class="hot" data-top style="left:315px;top:105px;width:44px;height:44px;border-radius:20px" title="맨 위로"></a>
-      <a class="hot slot" style="left:16.0px;top:158.5px;width:68.6px;height:52px" title="카테고리"></a>
-      <a class="hot slot" style="left:84.6px;top:158.5px;width:68.6px;height:52px" title="검색"></a>
-      <a class="hot ai-hot" data-ai style="left:157px;top:145px;width:60px;height:60px;border-radius:30px" title="AI검색"></a>
-      <a class="hot slot" data-go="my" style="left:221.8px;top:158.5px;width:68.6px;height:52px" title="나의11번가"></a>
-      <a class="hot slot" style="left:290.4px;top:158.5px;width:68.6px;height:52px" title="최근본"></a>
+      <!-- Figma 130:102164: (AI 맞춤검색 알약 17,158 117x52) · 흰 알약 142,158 216x52 [카테고리 · 나의11번가 · 최근본], 맨 위로 원 315,104 -->
+      <div class="bar solid top-btn round" style="left:315px;top:104px;width:44px;height:44px"><div class="items"><img src="img/tab/top.png" style="width:36px"></div></div>
+      <div class="pill" id="aiBtn" style="left:17px;top:158px;width:117px"><img src="img/tab2/ai_pill.png" alt="AI 맞춤검색"></div>
+      <div class="bar solid" style="left:142px;top:158px;width:216px;height:52px"><img src="img/tab2/home_pill_r.png" style="width:216px;height:52px" alt=""></div>
+      <a class="hot" data-top style="left:315px;top:104px;width:44px;height:44px;border-radius:22px" title="맨 위로"></a>
+      <a class="hot ai-hot" data-ai style="left:17px;top:158px;width:117px;height:52px;border-radius:26px" title="AI 맞춤검색"></a>
+      <a class="hot slot" style="left:142px;top:158px;width:72px;height:52px" title="카테고리"></a>
+      <a class="hot slot" data-go="my" style="left:214px;top:158px;width:72px;height:52px" title="나의11번가"></a>
+      <a class="hot slot" style="left:286px;top:158px;width:72px;height:52px" title="최근본"></a>
     </div>
-    <!-- 나의11번가 탭바 (Figma 111:95262): 뒤로 · 홈 · 카테고리 · (멤버십 구매미션) · 검색 · 11톡 · 최근본, 칸 49px -->
+    <!-- 나의11번가 탭바 (Figma 134:103166): (11번가+ 구매미션 알약 16,158 102x52) · 흰 알약 126,158 233x52 [뒤로 · 홈 · 카테고리 · 11톡 · 최근본], 칸 46.6 -->
     <div class="tab off" data-screen="my">
-      <div class="bar top-btn" style="left:315px;top:105px;width:44px;height:44px"><div class="items"><img src="img/tab/top.png" style="width:36px"></div></div>
-      <div class="bar" style="left:16px;top:158.5px;width:343px;height:52px"><img src="img/my/my_bar.png" style="width:343px;height:52px" alt=""></div>
-      <div class="aib">
-        <i class="aib-sh"></i>
-        <img class="aib-ic" src="img/my/my_btn.png" alt="멤버십 구매미션">
-        <svg class="aib-ar" width="10" height="8" viewBox="0 0 10 8" aria-hidden="true">
-          <path class="a1" d="M.75 3.1 5 .75l4.25 2.35" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <path class="a2" d="M.75 7.1 5 4.75l4.25 2.35" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".3"/>
-        </svg>
-      </div>
-      <a class="hot" data-top style="left:315px;top:105px;width:44px;height:44px;border-radius:20px" title="맨 위로"></a>
-      <a class="hot slot s7" data-back style="left:16px;top:158.5px;width:49px;height:52px" title="뒤로"></a>
-      <a class="hot slot s7" data-back style="left:65px;top:158.5px;width:49px;height:52px" title="홈"></a>
-      <a class="hot slot s7" style="left:114px;top:158.5px;width:49px;height:52px" title="카테고리"></a>
-      <a class="hot slot s7" style="left:212px;top:158.5px;width:49px;height:52px" title="검색"></a>
-      <a class="hot slot s7" style="left:261px;top:158.5px;width:49px;height:52px" title="11톡"></a>
-      <a class="hot slot s7" style="left:310px;top:158.5px;width:49px;height:52px" title="최근본"></a>
+      <div class="bar solid top-btn round" style="left:315px;top:104px;width:44px;height:44px"><div class="items"><img src="img/tab/top.png" style="width:36px"></div></div>
+      <div class="pill" style="left:16px;top:158px;width:102px"><img src="img/tab2/my_pill_l.png" alt="11번가플러스 구매미션"></div>
+      <div class="bar solid" style="left:126px;top:158px;width:233px;height:52px"><img src="img/tab2/my_pill_r.png" style="width:233px;height:52px" alt=""></div>
+      <a class="hot" data-top style="left:315px;top:104px;width:44px;height:44px;border-radius:22px" title="맨 위로"></a>
+      <a class="hot" style="left:16px;top:158px;width:102px;height:52px;border-radius:26px" title="11번가플러스 구매미션"></a>
+      <a class="hot slot s7" data-back style="left:126px;top:158px;width:46.6px;height:52px" title="뒤로"></a>
+      <a class="hot slot s7" data-back style="left:172.6px;top:158px;width:46.6px;height:52px" title="홈"></a>
+      <a class="hot slot s7" style="left:219.2px;top:158px;width:46.6px;height:52px" title="카테고리"></a>
+      <a class="hot slot s7" style="left:265.8px;top:158px;width:46.6px;height:52px" title="11톡"></a>
+      <a class="hot slot s7" style="left:312.4px;top:158px;width:46.6px;height:52px" title="최근본"></a>
     </div>
     <div class="tab off" data-screen="pdp">
       <div class="bar top-btn" style="left:315px;top:91px;width:44px;height:44px"><div class="items"><img src="img/tab/top.png" style="width:36px"></div></div>
@@ -388,7 +367,7 @@
       <div class="ai-blob" id="aiBlob">
         <img class="ai-bg" id="aiBg" src="img/ai/s_bg.png" alt="">
         <i class="ai-ink" id="aiInk"></i>
-        <img class="ai-icon" id="aiIcon" src="img/ai/ai_btn.png" alt="">
+        <img class="ai-icon" id="aiIcon" src="img/tab2/ai_pill.png" alt="">
       </div>
       <div class="ai-sheet" id="aiSheet">
         <div class="ai-grab" id="aiGrab" title="끌어내려 닫기"></div>
@@ -602,17 +581,18 @@
     gnbOut(st);
     current = 'home'; stack.length = 0; setTab('home');
   }
-  /* ---------- AI검색: 버튼 ↔ 바텀시트 ----------
-     열기: 버튼의 보라 원(52px)이 위로 솟으며 말랑하게 늘어나 시트 몸통이 됨 → 보라색이 걷히며 연보라 시트 배경이 드러남
+  /* ---------- AI검색: 알약 버튼 ↔ 바텀시트 ----------
+     열기: 왼쪽 AI 맞춤검색 알약이 제자리에서 위·오른쪽으로 늘어나 시트 몸통이 됨(알약 그라데이션이 번졌다 걷히며 연보라 시트 배경이 드러남)
            → 제목·추천 질문·입력창이 아래에서 차례로 올라옴
-     닫기: 반대로 내용이 먼저 빠지고, 시트가 다시 보라색으로 물들며 버튼 자리로 오므라들어 버튼이 됨 */
+     닫기: 반대로 내용이 먼저 빠지고, 시트가 다시 알약 색으로 물들며 알약 자리로 오므라들어 버튼이 됨 */
   const ai = byId('ai'), aiMove = byId('aiMove'), aiBlob = byId('aiBlob'), aiBg = byId('aiBg');
   const aiInk = byId('aiInk'), aiIcon = byId('aiIcon'), aiBtn = byId('aiBtn');
   const aiItems = [...ai.querySelectorAll('.ai-c')];
   // 시트 안에서 본 AI검색 버튼 중심 = (187, 761 - 533.5). 시트 네 모서리까지 가장 먼 거리 ≈ 294px
-  const CIR_AT = 'at 187px 227.5px';
-  const cir = r => `circle(${r}px ${CIR_AT})`;
-  const R0 = 26, R1 = 300;
+  // 시트 기준 AI 맞춤검색 알약 = (17, 210.5) 117x52 → 시트 전체(375x278.5, 위 모서리 12)
+  const AI_PILL = 'inset(210.5px 241px 16px 17px round 26px)';
+  const AI_MID  = 'inset(70px 90px 4px 8px round 22px)';
+  const AI_FULL = 'inset(0px 0px 0px 0px round 12px 12px 0px 0px)';
   const AI_OPEN = 460, AI_CLOSE = 380;   // 열기 .46s · 닫기 .38s
   let aiState = 'closed';
 
@@ -626,13 +606,13 @@
     const t = { duration:AI_OPEN, easing:'linear', fill:'both' };
     // 원 모양 그대로 버튼 중심에서 퍼져 나감 (처음엔 천천히 → 빠르게 → 끝에서 부드럽게 멈춤). 그림자는 다 퍼진 뒤 서서히
     aiBlob.animate([
-      { clipPath:cir(R0), boxShadow:'0 0 8px 2px rgba(0,0,0,0)', easing:'cubic-bezier(.4,0,.2,1)' },
-      { clipPath:cir(R1), boxShadow:'0 0 8px 2px rgba(0,0,0,0)', offset:.86 },
-      { clipPath:cir(R1), boxShadow:'0 0 8px 2px rgba(0,0,0,.15)' }], t);
+      { clipPath:AI_PILL, boxShadow:'0 0 8px 2px rgba(0,0,0,0)', easing:'cubic-bezier(.4,0,.2,1)' },
+      { clipPath:AI_FULL, boxShadow:'0 0 8px 2px rgba(0,0,0,0)', offset:.86 },
+      { clipPath:AI_FULL, boxShadow:'0 0 8px 2px rgba(0,0,0,.15)' }], t);
     // 보라색은 원이 퍼지는 동안 옅어지며 연보라 시트 배경으로 바뀜
     aiInk.animate([{ opacity:1 }, { opacity:1, offset:.18, easing:'cubic-bezier(.4,0,.4,1)' }, { opacity:0, offset:.8 }, { opacity:0 }], t);
     // 버튼 글자(AI검색)는 퍼지는 색 속으로 살짝 커지며 녹아듦
-    aiIcon.animate([{ opacity:1, transform:'none' }, { opacity:0, transform:'scale(1.35)', offset:.28 }, { opacity:0 }], t);
+    aiIcon.animate([{ opacity:1, transform:'none' }, { opacity:0, transform:'translateY(-10px) scale(1.12)', offset:.3 }, { opacity:0 }], t);
     const last = aiItems.map((el, i) => el.animate(
       [{ opacity:0, transform:'translateY(18px)' }, { opacity:1, transform:'none' }],
       { duration:340, delay:AI_OPEN * .42 + i * 40, easing:'cubic-bezier(.2,.9,.3,1)', fill:'both' })).pop();
@@ -650,11 +630,11 @@
     aiMove.animate([{ transform:`translateY(${dragY}px)` }, { transform:'none' }], { ...t, easing:'cubic-bezier(.3,.7,.3,1)' });
     // 반대로: 보라색이 다시 번지며 원이 버튼 중심으로 모여듦
     aiBlob.animate([
-      { clipPath:cir(R1), boxShadow:'0 0 8px 2px rgba(0,0,0,.15)', easing:'cubic-bezier(.5,0,.75,0)' },
-      { clipPath:cir(R1 * .55), boxShadow:'0 0 8px 2px rgba(0,0,0,0)', offset:.45, easing:'cubic-bezier(.2,.6,.3,1)' },
-      { clipPath:cir(R0), boxShadow:'0 0 8px 2px rgba(0,0,0,0)' }], t);
+      { clipPath:AI_FULL, boxShadow:'0 0 8px 2px rgba(0,0,0,.15)', easing:'cubic-bezier(.5,0,.75,0)' },
+      { clipPath:AI_MID, boxShadow:'0 0 8px 2px rgba(0,0,0,0)', offset:.45, easing:'cubic-bezier(.2,.6,.3,1)' },
+      { clipPath:AI_PILL, boxShadow:'0 0 8px 2px rgba(0,0,0,0)' }], t);
     aiInk.animate([{ opacity:0, easing:'ease-in' }, { opacity:1, offset:.6 }, { opacity:1 }], t);
-    const end = aiIcon.animate([{ opacity:0, transform:'scale(1.35)' }, { opacity:0, transform:'scale(1.35)', offset:.66 }, { opacity:1, transform:'none' }], t);
+    const end = aiIcon.animate([{ opacity:0, transform:'translateY(-10px) scale(1.12)' }, { opacity:0, transform:'translateY(-10px) scale(1.12)', offset:.66 }, { opacity:1, transform:'none' }], t);
     end.finished.then(() => {
       aiBtn.classList.remove('gone');
       ai.classList.remove('on');
@@ -662,7 +642,7 @@
       clearAnims(ai);
       aiState = 'closed';
       // 버튼으로 돌아온 뒤 말랑하게 한 번 튕김
-      aiBtn.querySelector('.aib-ic').animate([{ transform:'scale(1)' }, { transform:'scale(1.1)' }, { transform:'scale(.96)' }, { transform:'scale(1)' }],
+      aiBtn.animate([{ transform:'scale(1)' }, { transform:'scale(1.06)' }, { transform:'scale(.98)' }, { transform:'scale(1)' }],
         { duration:380, easing:'ease-out' });
     });
   }
