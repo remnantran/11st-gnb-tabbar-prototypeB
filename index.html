@@ -28,7 +28,7 @@
   /* ---------- 타이틀배너 장식 (Figma 로고데이영역 42:11335, cropSize 27.5,102 320x54 안에서 잘림) ----------
      산타·루돌프: 줄에 매달린 채 위아래로 통통 (줄 윗부분은 배너 위로 잘려 있어서 같이 움직여도 끊겨 보이지 않음)
      반짝이: 별은 커졌다 작아지며 반짝, 동그란 빛망울은 은은하게 깜빡 */
-  .deco { position:absolute; left:27.5px; top:102px; width:320px; height:54px; overflow:hidden; pointer-events:none; }
+  .deco { position:absolute; left:27.5px; top:96px; width:320px; height:54px; overflow:hidden; pointer-events:none; }
   .deco img, .deco .hang, .deco .bit, .deco svg { position:absolute; display:block; }
   .hang { left:0; top:0; width:0; height:0; animation: hop 1.9s infinite; }
   .hang.rudolph { animation-delay:.32s; }
@@ -110,9 +110,9 @@
   .tabs { position:absolute; left:0; bottom:0; width:375px; height:226px; z-index:40; pointer-events:none; }
   .tab { position:absolute; inset:0; pointer-events:none; }
   .tab img { display:block; user-select:none; -webkit-user-drag:none; }
-  /* Figma B안 탭바: fill #FFF solid, drop shadow 0 1 3 #000 10% (탭 pill radius 100, 맨 위로 버튼 44x44 radius 20) */
-  .bar { position:absolute; border-radius:100px; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.10); }
-  .bar.top-btn { border-radius:20px; }
+  /* Figma B안 탭바: fill #FFF 95% (맨 위로 버튼만 100%), drop shadow 0 1 3 #000 10% (탭 pill radius 100, 맨 위로 버튼 44x44 radius 20) */
+  .bar { position:absolute; border-radius:100px; background:rgba(255,255,255,.95); box-shadow:0 1px 3px rgba(0,0,0,.10); }
+  .bar.top-btn { border-radius:20px; background:#fff; }
   .bar .items { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
   .bar .items img { height:auto; }
 
@@ -172,7 +172,58 @@
     margin:-25px 0 0 -30.5px; border-radius:25px; background:rgba(0,0,0,.07);
     opacity:0; transform:scale(.88); transition: opacity .18s ease, transform .22s var(--ease); }
   .tab .hot.slot:active::before { opacity:1; transform:scale(1); transition-duration:.08s, .12s; }
+  /* 7칸 탭바(칸 49px)는 캡슐도 좁게 */
+  .tab .hot.slot.s7::before { width:47px; margin-left:-23.5px; }
+  /* 나의11번가 GNB 알약 (Figma 111:96995): 16,44 343x52, 흰색 95%, radius 100, shadow 0 2 6 6% + 0 0 1 28%
+     화면 밖(phone) 레이어라서 홈 GNB 알약과 같은 자리에서 요소만 바뀌며 이어짐 */
+  .my-nav { position:absolute; left:16px; top:44px; width:343px; height:52px; z-index:36; pointer-events:none; visibility:hidden; }
+  .my-nav.on { visibility:visible; }
+  .my-nav .mn-bg { position:absolute; inset:0; border-radius:100px; background:#fff; opacity:.95;
+    box-shadow:0 2px 6px rgba(0,0,0,.06), 0 0 1px rgba(0,0,0,.28); }
+  .my-nav img { position:absolute; display:block; user-select:none; -webkit-user-drag:none; }
+  .my-nav .h-only { opacity:0; }
+  .my-nav .mn-logo { transform-origin:0 0; }
+  .my-nav .mn-hsearch { transform-origin:100% 50%; }
+  .my-nav .hot { pointer-events:auto; }
   body.debug .hot, body.debug .ft-close { outline:2px dashed rgba(255,0,56,.8); }
+
+  /* ---------- AI검색 버튼 (Figma 111:94588) ---------- */
+  .aib { position:absolute; left:151px; top:141px; width:72px; height:72px; pointer-events:none; }
+  .aib-sh { position:absolute; left:12px; top:12.9px; width:48px; height:47.1px; border-radius:24px;
+    background:#bbb; opacity:.8; filter:blur(8.15px); }
+  .aib-ic { position:absolute; left:10px; top:8px; width:52px; height:52px; border-radius:50%; }
+  .aib-ar { position:absolute; left:31px; top:12px; overflow:visible; }
+  /* 위로 올라오라는 힌트: 두 화살표가 번갈아 밝아짐 */
+  .aib-ar .a1 { animation: ar-a 1.6s ease-in-out infinite; }
+  .aib-ar .a2 { animation: ar-b 1.6s ease-in-out infinite; }
+  @keyframes ar-a { 0%,100% { opacity:.3; } 50% { opacity:1; } }
+  @keyframes ar-b { 0%,100% { opacity:1; } 50% { opacity:.3; } }
+  .aib.press .aib-ic, .aib.press .aib-ar { transform:scale(.92); transition:transform .12s ease-out; }
+  .aib .aib-ic, .aib .aib-ar { transform-origin:26px 26px; transition:transform .3s cubic-bezier(.3,1.6,.5,1); }
+  .aib .aib-ar { transform-origin:5px 22px; }
+  .aib.gone { visibility:hidden; }
+  .tab .hot.ai-hot:active { background:none; }
+
+  /* ---------- AI검색 바텀시트 ---------- */
+  .ai { position:absolute; inset:0; z-index:45; pointer-events:none; visibility:hidden; }
+  .ai.on { visibility:visible; }
+  .ai.open { pointer-events:auto; }
+  .ai-catch { position:absolute; inset:0; }
+  .ai-move { position:absolute; inset:0; pointer-events:none; }
+  .ai-move > * { pointer-events:auto; }
+  /* 시트 몸통 = 늘어나는 보라 원. 최종: 0,533.5 375x278.5, 위 모서리 12 (드래그 핸들 그림자 0 0 8 2 15%) */
+  .ai-blob { position:absolute; left:0; top:533.5px; width:375px; height:278.5px; overflow:hidden;
+    border-radius:12px 12px 0 0; background:#faf7ff; box-shadow:0 0 8px 2px rgba(0,0,0,.15); }
+  .ai-bg { position:absolute; left:0; top:0; width:375px; height:278.5px; display:block; }
+  /* 보라 잉크: 버튼 중심(시트 기준 187,227.5)에서 퍼지는 원형 그라데이션 */
+  .ai-ink { position:absolute; inset:0; opacity:0;
+    background:radial-gradient(circle at 187px 227.5px, #464bf6 0px, #7a3cfa 90px, #c027ff 200px, #d68bff 300px); }
+  .ai-icon { position:absolute; left:161px; top:201.5px; width:52px; height:52px; opacity:0; }
+  .ai-sheet { position:absolute; left:0; top:533.5px; width:375px; height:278.5px; pointer-events:none; }
+  .ai-sheet > * { pointer-events:auto; }
+  .ai-c { position:absolute; display:block; height:auto; user-select:none; -webkit-user-drag:none; opacity:0; }
+  .ai-grab { position:absolute; left:0; top:0; width:375px; height:28px; cursor:grab; touch-action:none; }
+  .ai-grab:active { cursor:grabbing; }
 
   .hint { position:fixed; left:16px; bottom:16px; color:#8e8e93; font-size:12px; line-height:1.5; }
   .hint kbd { background:#2c2c2e; color:#ddd; border-radius:4px; padding:1px 5px; font-family:inherit; }
@@ -210,9 +261,7 @@
         <img class="cosmetic" src="img/deco/cosmetic.png" alt="">
         <img src="img/deco/btn_sulwhasoo.png" style="left:251px;top:29px;width:51.5px;height:21.5px" alt="">
       </div>
-      <img class="sec" src="img/home_contents.png" style="top:205px">
-      <!-- 최근 본 상품과 비슷한 상품이에요 > 두 번째 상품(비비고 왕교자) → B안 PDP -->
-      <a class="hot" data-push="pdp" style="left:133px;top:1214px;width:109px;height:183px;border-radius:6px" title="비비고 왕교자"></a>
+      <img class="sec" src="img/home_contents.png" style="top:199px">
     </div></div>
     <img class="fix status pink" src="img/status_pink.png" alt="">
     <img class="fix status white" id="statusWhite" src="img/status_white.png" alt="">
@@ -228,7 +277,28 @@
     </div>
   </section>
 
-  <!-- B안 PDP (Figma 42:11634): 콘텐츠는 A안 PDP와 같은 그림, y110부터 -->
+  <!-- 나의11번가 (Figma 111:95109): 흰 상태바 + 떠 있는 GNB 알약(16,44 343x58), 콘텐츠는 y102부터 -->
+  <section class="screen hidden" id="my">
+    <div class="scroll"><div class="content">
+      <img class="sec" src="img/my/my_contents.png" style="top:102px" alt="">
+    </div></div>
+    <img class="fix" src="img/status_clear.png" style="top:0;height:44px;z-index:3" alt="">
+  </section>
+
+  <!-- 나의11번가 GNB: 뒤로 · 11번가 | 나의 11번가 · 검색 · 알림 · 장바구니 (홈 GNB 조각 h-only는 전환 중에만 보임) -->
+  <div class="my-nav" id="myNav">
+    <i class="mn-bg"></i>
+    <img class="h-only mn-hlogo"   src="img/my/h_logo.png"   style="left:14px;top:13px;width:56px;height:26px" alt="">
+    <img class="h-only mn-hsearch" src="img/my/h_search.png" style="left:76px;top:7px;width:167px;height:38px" alt="">
+    <img class="mn-back"   src="img/my/m_back.png"   style="left:16px;top:8px;width:36px;height:36px" alt="뒤로">
+    <img class="mn-logo"   src="img/my/m_logo.png"   style="left:55px;top:16px;width:44px;height:20px" alt="11번가">
+    <img class="mn-title"  src="img/my/m_title.png"  style="left:104px;top:14px;width:96px;height:24px" alt="나의 11번가">
+    <img class="mn-search" src="img/my/m_search.png" style="left:211px;top:8px;width:36px;height:36px" alt="검색">
+    <img class="mn-bc"     src="img/my/m_bc.png"     style="left:251px;top:4px;width:82px;height:42px" alt="알림 · 장바구니">
+    <a class="hot" data-back style="left:16px;top:8px;width:36px;height:36px;border-radius:18px" title="뒤로"></a>
+  </div>
+
+  <!-- B안 PDP (Figma 42:11634): 콘텐츠는 A안 PDP와 같은 그림, y110부터 (현재 연결 없음) -->
   <section class="screen hidden" id="pdp">
     <div class="scroll"><div class="content">
       <img class="sec" src="img/pdp_contents.png" style="top:110px">
@@ -258,16 +328,44 @@
   <!-- 고정 탭바 -->
   <div class="tabs">
     <div class="tab" data-screen="home">
-      <div class="bar top-btn" style="left:315px;top:91px;width:44px;height:44px"><div class="items"><img src="img/tab/top.png" style="width:36px"></div></div>
-      <div class="bar" style="left:16px;top:150px;width:343px;height:56px"><div class="items">
-        <img src="img/tab/home_1.png" style="width:69px"><img src="img/tab/home_2.png" style="width:69px"><img src="img/tab/home_3.png" style="width:69px"><img src="img/tab/home_4.png" style="width:69px"><img src="img/tab/home_5.png" style="width:69px">
-      </div></div>
-      <a class="hot" data-top style="left:315px;top:91px;width:44px;height:44px;border-radius:20px" title="맨 위로"></a>
-      <a class="hot slot" style="left:16.0px;top:150px;width:68.6px;height:56px" title="카테고리"></a>
-      <a class="hot slot" style="left:84.6px;top:150px;width:68.6px;height:56px" title="검색"></a>
-      <a class="hot slot" data-top style="left:153.2px;top:150px;width:68.6px;height:56px" title="홈"></a>
-      <a class="hot slot" style="left:221.8px;top:150px;width:68.6px;height:56px" title="나의11번가"></a>
-      <a class="hot slot" style="left:290.4px;top:150px;width:68.6px;height:56px" title="최근본"></a>
+      <div class="bar top-btn" style="left:315px;top:105px;width:44px;height:44px"><div class="items"><img src="img/tab/top.png" style="width:36px"></div></div>
+      <!-- Figma 111:94569: 카테고리 · 검색 · (가운데 AI검색 버튼) · 나의11번가 · 최근본 -->
+      <div class="bar" style="left:16px;top:158.5px;width:343px;height:52px"><img src="img/ai/bar.png" style="width:343px;height:52px" alt=""></div>
+      <!-- AI검색 버튼 (Figma 111:94588): 그림자 + 보라 그라데이션 원 52px + 위쪽 화살표 두 개 -->
+      <div class="aib" id="aiBtn">
+        <i class="aib-sh"></i>
+        <img class="aib-ic" src="img/ai/ai_btn.png" alt="">
+        <svg class="aib-ar" width="10" height="8" viewBox="0 0 10 8" aria-hidden="true">
+          <path class="a1" d="M.75 3.1 5 .75l4.25 2.35" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path class="a2" d="M.75 7.1 5 4.75l4.25 2.35" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".3"/>
+        </svg>
+      </div>
+      <a class="hot" data-top style="left:315px;top:105px;width:44px;height:44px;border-radius:20px" title="맨 위로"></a>
+      <a class="hot slot" style="left:16.0px;top:158.5px;width:68.6px;height:52px" title="카테고리"></a>
+      <a class="hot slot" style="left:84.6px;top:158.5px;width:68.6px;height:52px" title="검색"></a>
+      <a class="hot ai-hot" data-ai style="left:157px;top:145px;width:60px;height:60px;border-radius:30px" title="AI검색"></a>
+      <a class="hot slot" data-go="my" style="left:221.8px;top:158.5px;width:68.6px;height:52px" title="나의11번가"></a>
+      <a class="hot slot" style="left:290.4px;top:158.5px;width:68.6px;height:52px" title="최근본"></a>
+    </div>
+    <!-- 나의11번가 탭바 (Figma 111:95262): 뒤로 · 홈 · 카테고리 · (멤버십 구매미션) · 검색 · 11톡 · 최근본, 칸 49px -->
+    <div class="tab off" data-screen="my">
+      <div class="bar top-btn" style="left:315px;top:105px;width:44px;height:44px"><div class="items"><img src="img/tab/top.png" style="width:36px"></div></div>
+      <div class="bar" style="left:16px;top:158.5px;width:343px;height:52px"><img src="img/my/my_bar.png" style="width:343px;height:52px" alt=""></div>
+      <div class="aib">
+        <i class="aib-sh"></i>
+        <img class="aib-ic" src="img/my/my_btn.png" alt="멤버십 구매미션">
+        <svg class="aib-ar" width="10" height="8" viewBox="0 0 10 8" aria-hidden="true">
+          <path class="a1" d="M.75 3.1 5 .75l4.25 2.35" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path class="a2" d="M.75 7.1 5 4.75l4.25 2.35" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".3"/>
+        </svg>
+      </div>
+      <a class="hot" data-top style="left:315px;top:105px;width:44px;height:44px;border-radius:20px" title="맨 위로"></a>
+      <a class="hot slot s7" data-back style="left:16px;top:158.5px;width:49px;height:52px" title="뒤로"></a>
+      <a class="hot slot s7" data-back style="left:65px;top:158.5px;width:49px;height:52px" title="홈"></a>
+      <a class="hot slot s7" style="left:114px;top:158.5px;width:49px;height:52px" title="카테고리"></a>
+      <a class="hot slot s7" style="left:212px;top:158.5px;width:49px;height:52px" title="검색"></a>
+      <a class="hot slot s7" style="left:261px;top:158.5px;width:49px;height:52px" title="11톡"></a>
+      <a class="hot slot s7" style="left:310px;top:158.5px;width:49px;height:52px" title="최근본"></a>
     </div>
     <div class="tab off" data-screen="pdp">
       <div class="bar top-btn" style="left:315px;top:91px;width:44px;height:44px"><div class="items"><img src="img/tab/top.png" style="width:36px"></div></div>
@@ -279,6 +377,26 @@
         <div class="seg" style="width:120px"><span class="s18">바로 구매</span><img src="img/deco/ic_chevron_right.svg" alt=""></div>
       </div>
       <a class="hot" data-top style="left:315px;top:91px;width:44px;height:44px;border-radius:20px" title="맨 위로"></a>
+    </div>
+  </div>
+
+  <!-- AI검색 바텀시트 (Figma 111:93087, 375x284, 화면 아래에 붙음)
+       버튼의 보라 원이 그대로 늘어나 시트가 되고, 보라색이 걷히면서 시트 내용이 차례로 올라옴 -->
+  <div class="ai" id="ai" aria-hidden="true">
+    <div class="ai-catch" data-aiclose></div>
+    <div class="ai-move" id="aiMove">
+      <div class="ai-blob" id="aiBlob">
+        <img class="ai-bg" id="aiBg" src="img/ai/s_bg.png" alt="">
+        <i class="ai-ink" id="aiInk"></i>
+        <img class="ai-icon" id="aiIcon" src="img/ai/ai_btn.png" alt="">
+      </div>
+      <div class="ai-sheet" id="aiSheet">
+        <div class="ai-grab" id="aiGrab" title="끌어내려 닫기"></div>
+        <img class="ai-c" src="img/ai/s_title.png"  style="left:14px;top:30px;width:347px" alt="찾으시는 상품에 대해 편하게 물어보세요.">
+        <img class="ai-c" src="img/ai/s_chip1.png"  style="left:16px;top:69.5px;width:269px" alt="">
+        <img class="ai-c" src="img/ai/s_chip2.png"  style="left:16px;top:129.5px;width:257px" alt="">
+        <img class="ai-c" src="img/ai/s_search.png" style="left:16px;top:215px;width:343px" alt="">
+      </div>
     </div>
   </div>
 
@@ -315,15 +433,15 @@
   addEventListener('resize', fit); fit();
 
   /* ---------- 스크롤: 탭 고정 + 띠배너 ----------
-     카테고리 탭(콘텐츠 y156)이 상태바 아래(y44)에 닿는 지점 = 112px 스크롤 */
-  const STICK = 112;
+     카테고리 탭(콘텐츠 y150)이 상태바 아래(y44)에 닿는 지점 = 106px 스크롤 */
+  const STICK = 106;
   const statusWhite = document.getElementById('statusWhite');
   const ft = document.getElementById('ft');
   let ftClosed = false;
   function onScroll() {
     const top = Math.max(scroll.scrollTop, 0);
     // 흰 시트 윗부분(y≈150)이 상태바에 다가오면 상태바가 흰색으로
-    statusWhite.style.opacity = Math.min(Math.max((top - 98) / 10, 0), 1);
+    statusWhite.style.opacity = Math.min(Math.max((top - 92) / 10, 0), 1);
     const stuck = top >= STICK;
     phone.classList.toggle('stuck', stuck);
     if (!stuck) ftClosed = false;                 // 헤더가 다시 보이면 닫았던 배너도 다음에 다시 나옴
@@ -384,7 +502,7 @@
      - 'pill'  : 홈 GNB 알약(검색바)이 보이는 상태 → 같은 알약이 PDP GNB로 변신 (장바구니 그대로, 로고는 작아지며 비켜섬)
      - 'sticky': 카테고리 탭(+띠배너)이 상단에 고정된 상태 → 그 흰 영역이 그대로 오므라들며 PDP 알약 바가 됨
      - 'drop'  : 그 밖 → PDP GNB가 위에서 톡 내려옴 */
-  const HOME_LOGO = 'translate(-46px,-2.57px) scale(1.2727)';   // 홈 로고 56x24 @(16,17) ↔ PDP 로고 44x18.9 @(62,19.6)
+  const HOME_LOGO = 'translate(-46px,-1.74px) scale(1.1818)';   // 홈 로고 52x22.3 @(16,17.86) ↔ PDP 로고 44x18.9 @(62,19.6)
   const ITEMS = ['.g-back', '.g-logo', '.g-title', '.g-search', '.g-cart'];
   function homeTopState() {
     const hs = scrollOf('home').scrollTop;
@@ -484,12 +602,189 @@
     gnbOut(st);
     current = 'home'; stack.length = 0; setTab('home');
   }
-  function back() { closePdp(); }
+  /* ---------- AI검색: 버튼 ↔ 바텀시트 ----------
+     열기: 버튼의 보라 원(52px)이 위로 솟으며 말랑하게 늘어나 시트 몸통이 됨 → 보라색이 걷히며 연보라 시트 배경이 드러남
+           → 제목·추천 질문·입력창이 아래에서 차례로 올라옴
+     닫기: 반대로 내용이 먼저 빠지고, 시트가 다시 보라색으로 물들며 버튼 자리로 오므라들어 버튼이 됨 */
+  const ai = byId('ai'), aiMove = byId('aiMove'), aiBlob = byId('aiBlob'), aiBg = byId('aiBg');
+  const aiInk = byId('aiInk'), aiIcon = byId('aiIcon'), aiBtn = byId('aiBtn');
+  const aiItems = [...ai.querySelectorAll('.ai-c')];
+  // 시트 안에서 본 AI검색 버튼 중심 = (187, 761 - 533.5). 시트 네 모서리까지 가장 먼 거리 ≈ 294px
+  const CIR_AT = 'at 187px 227.5px';
+  const cir = r => `circle(${r}px ${CIR_AT})`;
+  const R0 = 26, R1 = 300;
+  const AI_OPEN = 460, AI_CLOSE = 380;   // 열기 .46s · 닫기 .38s
+  let aiState = 'closed';
+
+  function openAi() {
+    if (busy || current !== 'home' || aiState !== 'closed') return;
+    aiState = 'opening';
+    clearAnims(ai);
+    aiMove.style.transform = '';
+    ai.classList.add('on');
+    aiBtn.classList.add('gone');
+    const t = { duration:AI_OPEN, easing:'linear', fill:'both' };
+    // 원 모양 그대로 버튼 중심에서 퍼져 나감 (처음엔 천천히 → 빠르게 → 끝에서 부드럽게 멈춤). 그림자는 다 퍼진 뒤 서서히
+    aiBlob.animate([
+      { clipPath:cir(R0), boxShadow:'0 0 8px 2px rgba(0,0,0,0)', easing:'cubic-bezier(.4,0,.2,1)' },
+      { clipPath:cir(R1), boxShadow:'0 0 8px 2px rgba(0,0,0,0)', offset:.86 },
+      { clipPath:cir(R1), boxShadow:'0 0 8px 2px rgba(0,0,0,.15)' }], t);
+    // 보라색은 원이 퍼지는 동안 옅어지며 연보라 시트 배경으로 바뀜
+    aiInk.animate([{ opacity:1 }, { opacity:1, offset:.18, easing:'cubic-bezier(.4,0,.4,1)' }, { opacity:0, offset:.8 }, { opacity:0 }], t);
+    // 버튼 글자(AI검색)는 퍼지는 색 속으로 살짝 커지며 녹아듦
+    aiIcon.animate([{ opacity:1, transform:'none' }, { opacity:0, transform:'scale(1.35)', offset:.28 }, { opacity:0 }], t);
+    const last = aiItems.map((el, i) => el.animate(
+      [{ opacity:0, transform:'translateY(18px)' }, { opacity:1, transform:'none' }],
+      { duration:340, delay:AI_OPEN * .42 + i * 40, easing:'cubic-bezier(.2,.9,.3,1)', fill:'both' })).pop();
+    last.finished.then(() => { if (aiState === 'opening') { aiState = 'open'; ai.classList.add('open'); } });
+  }
+
+  function closeAi(dragY = 0) {
+    if (aiState !== 'open') return;
+    aiState = 'closing';
+    ai.classList.remove('open');
+    const t = { duration:AI_CLOSE, delay:70, easing:'linear', fill:'both' };
+    aiItems.slice().reverse().forEach((el, i) => el.animate(
+      [{ opacity:1, transform:'none' }, { opacity:0, transform:'translateY(10px)' }],
+      { duration:120, delay:i * 18, easing:'ease-in', fill:'forwards' }));
+    aiMove.animate([{ transform:`translateY(${dragY}px)` }, { transform:'none' }], { ...t, easing:'cubic-bezier(.3,.7,.3,1)' });
+    // 반대로: 보라색이 다시 번지며 원이 버튼 중심으로 모여듦
+    aiBlob.animate([
+      { clipPath:cir(R1), boxShadow:'0 0 8px 2px rgba(0,0,0,.15)', easing:'cubic-bezier(.5,0,.75,0)' },
+      { clipPath:cir(R1 * .55), boxShadow:'0 0 8px 2px rgba(0,0,0,0)', offset:.45, easing:'cubic-bezier(.2,.6,.3,1)' },
+      { clipPath:cir(R0), boxShadow:'0 0 8px 2px rgba(0,0,0,0)' }], t);
+    aiInk.animate([{ opacity:0, easing:'ease-in' }, { opacity:1, offset:.6 }, { opacity:1 }], t);
+    const end = aiIcon.animate([{ opacity:0, transform:'scale(1.35)' }, { opacity:0, transform:'scale(1.35)', offset:.66 }, { opacity:1, transform:'none' }], t);
+    end.finished.then(() => {
+      aiBtn.classList.remove('gone');
+      ai.classList.remove('on');
+      aiMove.style.transform = '';
+      clearAnims(ai);
+      aiState = 'closed';
+      // 버튼으로 돌아온 뒤 말랑하게 한 번 튕김
+      aiBtn.querySelector('.aib-ic').animate([{ transform:'scale(1)' }, { transform:'scale(1.1)' }, { transform:'scale(.96)' }, { transform:'scale(1)' }],
+        { duration:380, easing:'ease-out' });
+    });
+  }
+
+  // 핸들(시트 위쪽 28px)을 끌어내려 닫기
+  (() => {
+    const grab = byId('aiGrab');
+    let y0 = null, dy = 0;
+    const k = () => phone.getBoundingClientRect().height / 812;
+    grab.addEventListener('pointerdown', e => {
+      if (aiState !== 'open') return;
+      y0 = e.clientY; dy = 0; grab.setPointerCapture(e.pointerId);
+    });
+    grab.addEventListener('pointermove', e => {
+      if (y0 === null) return;
+      const d = (e.clientY - y0) / k();
+      dy = d > 0 ? d : d * .2;
+      aiMove.style.transform = `translateY(${dy}px)`;
+    });
+    const up = () => {
+      if (y0 === null) return; y0 = null;
+      if (dy > 70) closeAi(dy);
+      else aiMove.animate([{ transform:`translateY(${dy}px)` }, { transform:'none' }], { duration:260, easing:'cubic-bezier(.3,1.4,.5,1)' })
+             .finished.then(() => { aiMove.style.transform = ''; });
+      aiMove.style.transform = '';
+    };
+    grab.addEventListener('pointerup', up);
+    grab.addEventListener('pointercancel', up);
+  })();
+  ai.querySelector('.ai-catch').addEventListener('click', () => closeAi());
+
+  // AI 버튼 누르는 순간 살짝 눌림
+  const aiHot = document.querySelector('.ai-hot');
+  aiHot.addEventListener('pointerdown', () => aiBtn.classList.add('press'));
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => aiHot.addEventListener(ev, () => aiBtn.classList.remove('press')));
+
+  /* ---------- 홈 ↔ 나의11번가: GNB 알약이 이어지는 전환 ----------
+     홈 GNB 알약이 보이면(스크롤 50 미만) 그 알약이 제자리(16,44)로 붙으며 나의11번가 GNB로 바뀜
+       - 11번가 로고: 52px → 41.8px로 작아지며 오른쪽으로 비켜섬, 그 자리에 ← 뒤로가 들어옴
+       - 검색창: 오른쪽 끝으로 오므라들며 검색 아이콘이 됨, "나의 11번가" 제목이 옆에서 들어옴
+       - 알림·장바구니: 그대로 (알림만 2px 이동)
+     알약이 안 보이면 GNB가 위에서 톡 내려옴. 화면은 흰 바탕이 아래에서 살짝 떠오르며 겹쳐짐 */
+  const MY_DUR = 520, MY_EASE = 'cubic-bezier(.32,.72,0,1)';
+  const myNav = byId('myNav');
+  const mn = sel => myNav.querySelector(sel);
+  const MY_LOGO_FROM = 'translate(-40.24px,-2.43px) scale(1.244)';   // 나의11번가 로고 41.8 @(56,17) ↔ 홈 로고 52 @(16,14.86)
+  const homePill = () => { const hs = scrollOf('home').scrollTop; return hs < 50 ? hs : null; };
+
+  function openMy() {
+    if (busy || current !== 'home' || aiState !== 'closed') return; busy = true;
+    const home = byId('home'), my = byId('my');
+    const hs = homePill();
+    scrollOf('my').scrollTop = 0;
+    my.style.zIndex = 2; home.style.zIndex = 1; my.classList.remove('hidden');
+    // 화면: 흰 화면이 아래에서 살짝 떠오르며 덮음 (홈은 제자리)
+    my.animate([{ opacity:0 }, { opacity:1 }], { duration:MY_DUR * .4, easing:'ease-out' });   // 겹쳐 보이는 시간은 짧게
+    my.querySelector('.scroll').animate([{ transform:'translateY(36px)' }, { transform:'none' }], { duration:MY_DUR, easing:MY_EASE });
+    // GNB
+    clearAnims(myNav); myNav.classList.add('on');
+    const o = { duration:MY_DUR, easing:MY_EASE, fill:'both' };
+    if (hs !== null) {
+      myNav.animate([{ transform:`translateY(${-hs}px)` }, { transform:'none' }], o);
+      mn('.mn-bg').animate([{ opacity:1 }, { opacity:.95 }], o);
+      mn('.mn-logo').animate([{ transform:MY_LOGO_FROM }, { transform:'none' }], o);
+      mn('.mn-hsearch').animate([{ opacity:1, transform:'none' }, { opacity:0, transform:'scaleX(.22)', offset:.7 }, { opacity:0, transform:'scaleX(.22)' }], o);
+      mn('.mn-search').animate([{ opacity:0, transform:'scale(.6)' }, { opacity:1, transform:'none' }], { ...o, delay:140 });
+      mn('.mn-back').animate([{ opacity:0, transform:'translateX(-14px)' }, { opacity:1, transform:'none' }], { ...o, delay:60 });
+      mn('.mn-title').animate([{ opacity:0, transform:'translateX(16px)' }, { opacity:1, transform:'none' }], { ...o, delay:110 });
+      mn('.mn-bc').animate([{ transform:'translateX(-2px)' }, { transform:'none' }], o);
+    } else {
+      myNav.animate([{ transform:'translateY(-100px)' }, { transform:'translateY(5px)', offset:.55 },
+        { transform:'translateY(-2px)', offset:.78 }, { transform:'none' }],
+        { duration:620, delay:60, easing:'cubic-bezier(.2,.7,.3,1)', fill:'both' });
+    }
+    setTimeout(() => { home.classList.add('hidden'); busy = false; }, MY_DUR + 40);
+    current = 'my'; setTab('my');
+  }
+
+  function closeMy() {
+    if (busy || current !== 'my') return; busy = true;
+    const home = byId('home'), my = byId('my');
+    home.classList.remove('hidden');
+    const hs = homePill();
+    my.style.zIndex = 2; home.style.zIndex = 1;
+    const sc = my.querySelector('.scroll');
+    my.animate([{ opacity:1 }, { opacity:1, offset:.25 }, { opacity:0 }], { duration:MY_DUR * .8, easing:'ease-in', fill:'forwards' });
+    sc.animate([{ transform:'none' }, { transform:'translateY(28px)' }], { duration:MY_DUR * .8, easing:'cubic-bezier(.4,0,.8,.6)', fill:'forwards' });
+    clearAnims(myNav);
+    const o = { duration:MY_DUR, easing:MY_EASE, fill:'forwards' };
+    let done;
+    if (hs !== null) {
+      done = myNav.animate([{ transform:'none' }, { transform:`translateY(${-hs}px)` }], o).finished;
+      mn('.mn-bg').animate([{ opacity:.95 }, { opacity:1 }], o);
+      mn('.mn-logo').animate([{ transform:'none' }, { transform:MY_LOGO_FROM }], o);
+      mn('.mn-hsearch').animate([{ opacity:0, transform:'scaleX(.22)' }, { opacity:0, transform:'scaleX(.22)', offset:.15 }, { opacity:1, transform:'none' }], o);
+      mn('.mn-search').animate([{ opacity:1 }, { opacity:0, transform:'scale(.6)', offset:.4 }, { opacity:0, transform:'scale(.6)' }], o);
+      mn('.mn-back').animate([{ opacity:1 }, { opacity:0, transform:'translateX(-14px)', offset:.45 }, { opacity:0, transform:'translateX(-14px)' }], o);
+      mn('.mn-title').animate([{ opacity:1 }, { opacity:0, transform:'translateX(16px)', offset:.45 }, { opacity:0, transform:'translateX(16px)' }], o);
+      mn('.mn-bc').animate([{ transform:'none' }, { transform:'translateX(-2px)' }], o);
+    } else {
+      done = myNav.animate([{ transform:'none', opacity:1 }, { transform:'translateY(-100px)', opacity:0 }],
+        { duration:360, easing:'cubic-bezier(.5,0,.75,0)', fill:'forwards' }).finished;
+    }
+    Promise.all([done, new Promise(r => setTimeout(r, MY_DUR * .8 + 20))]).then(() => {
+      myNav.classList.remove('on'); clearAnims(myNav);
+      my.classList.add('hidden'); clearAnims(my); busy = false;
+    });
+    current = 'home'; setTab('home');
+  }
+
+  function back() {
+    if (aiState === 'open') closeAi();
+    else if (current === 'my') closeMy();
+    else closePdp();
+  }
 
   document.addEventListener('click', e => {
     const h = e.target.closest('.hot'); if (!h) return;
     e.preventDefault();
-    if (h.dataset.push === 'pdp') openPdp();
+    if ('ai' in h.dataset) openAi();
+    else if (h.dataset.go === 'my') openMy();
+    else if (h.dataset.push === 'pdp') openPdp();
     else if ('back' in h.dataset) back();
     else if ('top' in h.dataset) scrollOf(current).scrollTo({ top:0, behavior:'smooth' });
   });
